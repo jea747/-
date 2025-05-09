@@ -2,131 +2,112 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>벌금 기록 앱</title>
+  <title>경찰 전용 벌금 앱</title>
   <style>
     body {
-      background-color: #e8f0fa;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: "Arial", sans-serif;
+      background: #fdfce7;
       padding: 20px;
       text-align: center;
     }
-
     h1 {
-      color: #103f75;
+      margin-bottom: 10px;
     }
-
     #leaderboard {
-      margin: 20px auto;
-      max-width: 600px;
-      background-color: #ffffff;
-      border: 2px solid #103f75;
-      border-radius: 10px;
-      padding: 15px;
-      text-align: left;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      max-width: 800px;
-      margin: 20px auto;
-    }
-
-    .person {
-      background-color: #ffffff;
-      border: 2px solid #103f75;
-      border-radius: 12px;
+      margin-bottom: 20px;
       padding: 10px;
+      background: #fffbe0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+    .person {
+      display: flex;
+      justify-content: center;
+      margin: 5px;
+      gap: 5px;
+    }
+    button {
+      padding: 5px 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      margin: 2px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: background 0.2s;
     }
-
-    .person:hover {
-      background-color: #d0e2ff;
-    }
-
-    .amount {
-      margin-top: 5px;
-      font-weight: bold;
-      color: #103f75;
-    }
-
-    #total {
-      margin-top: 30px;
-      font-size: 20px;
-      color: #1a3d6d;
-      font-weight: bold;
-    }
-
-    .leaderboard-entry {
-      margin: 4px 0;
-    }
+    .add { background-color: #ffd54f; }
+    .add:hover { background-color: #ffca28; }
+    .sub { background-color: #ff8a65; }
+    .sub:hover { background-color: #ff7043; }
   </style>
 </head>
 <body>
-  <h1>👮 벌금 기록 앱</h1>
+  <h1>📋 경찰 벌금 기록</h1>
+  <div id="leaderboard"></div>
 
-  <div id="leaderboard">
-    <h2>📊 리더보드</h2>
-    <div id="leaderboardList"></div>
-  </div>
-
-  <div class="grid" id="buttonsGrid"></div>
-  <div id="total">총 벌금: 0서창</div>
+  <div id="buttons"></div>
 
   <script>
     const names = [
-      "구지민", "김민성", "김세은", "김아윤", "김지운",
-      "라셀", "박민재", "박선율", "박수현", "박은성", "안정우",
-      "양예진", "윤유성", "이서준", "이애민", "이윤아", "이화림",
-      "정재현", "정지유", "지은서", "진서윤", "차시율"
+      "구지민", "김민성", "김세은", "김아윤", "김지운", "라셀",
+      "박민재", "박선율", "박수현", "박은성", "안정우", "양예진", "윤유성",
+      "이서준", "이애민", "이윤아", "이화림", "정재현", "정지유", "지은서",
+      "진서윤", "차시율"
     ];
 
-    const fines = {};
-    const grid = document.getElementById("buttonsGrid");
-    const totalDisplay = document.getElementById("total");
-    const leaderboardList = document.getElementById("leaderboardList");
+    function getFines() {
+      const stored = localStorage.getItem("fines");
+      return stored ? JSON.parse(stored) : {};
+    }
 
-    function updateTotal() {
-      const total = Object.values(fines).reduce((sum, val) => sum + val, 0);
-      totalDisplay.textContent = `총 벌금: ${total}서창`;
+    function saveFines(fines) {
+      localStorage.setItem("fines", JSON.stringify(fines));
     }
 
     function updateLeaderboard() {
-      leaderboardList.innerHTML = '';
-      const sorted = Object.entries(fines)
-        .sort((a, b) => b[1] - a[1]);
-
-      sorted.forEach(([name, amount], index) => {
-        const div = document.createElement("div");
-        div.className = "leaderboard-entry";
-        div.textContent = `${index + 1}. ${name} - ${amount}서창`;
-        leaderboardList.appendChild(div);
+      const fines = getFines();
+      const lb = document.getElementById("leaderboard");
+      lb.innerHTML = "<h2>🏆 리더보드</h2>";
+      const sorted = names.map(name => ({
+        name,
+        fine: fines[name] || 0
+      })).sort((a, b) => b.fine - a.fine);
+      sorted.forEach(person => {
+        lb.innerHTML += `<div>${person.name} - ${person.fine} 서창</div>`;
       });
     }
 
-    names.forEach(name => {
-      fines[name] = 0;
+    function createButtons() {
+      const container = document.getElementById("buttons");
+      const fines = getFines();
+      names.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "person";
+        div.innerHTML = `
+          <span>${name}</span>
+          <button class="add">+1 서창</button>
+          <button class="sub">-1 서창</button>
+        `;
+        const addBtn = div.querySelector(".add");
+        const subBtn = div.querySelector(".sub");
 
-      const div = document.createElement("div");
-      div.className = "person";
-      div.innerHTML = `<div>${name}</div><div class="amount" id="amount-${name}">0서창</div>`;
-      div.onclick = () => {
-        const action = prompt(`${name}에게 추가하거나 차감할 서창 수를 입력하세요 (예: +3 또는 -2)`);
-        const value = parseInt(action);
-        if (!isNaN(value)) {
-          fines[name] += value;
-          if (fines[name] < 0) fines[name] = 0;
-          document.getElementById(`amount-${name}`).textContent = `${fines[name]}서창`;
-          updateTotal();
+        addBtn.onclick = () => {
+          fines[name] = (fines[name] || 0) + 1;
+          saveFines(fines);
           updateLeaderboard();
-        }
-      };
-      grid.appendChild(div);
-    });
+        };
+        subBtn.onclick = () => {
+          fines[name] = Math.max((fines[name] || 0) - 1, 0);
+          saveFines(fines);
+          updateLeaderboard();
+        };
+
+        container.appendChild(div);
+      });
+    }
 
     updateLeaderboard();
+    createButtons();
   </script>
 </body>
 </html>

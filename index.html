@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>경찰 전용 벌금 앱</title>
+  <title>경찰 벌금 기록</title>
   <style>
     body {
       font-family: "Arial", sans-serif;
-      background: #fdfce7;
+      background: #fffde7;
       padding: 20px;
       text-align: center;
     }
@@ -15,19 +15,21 @@
     }
     #leaderboard {
       margin-bottom: 20px;
-      padding: 10px;
-      background: #fffbe0;
+      padding: 15px;
+      background: #fff9c4;
       border-radius: 10px;
       box-shadow: 0 0 10px #ccc;
     }
     .person {
       display: flex;
       justify-content: center;
+      align-items: center;
       margin: 5px;
-      gap: 5px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     button {
-      padding: 5px 10px;
+      padding: 5px 12px;
       font-size: 14px;
       border: none;
       border-radius: 5px;
@@ -39,12 +41,16 @@
     .add:hover { background-color: #ffca28; }
     .sub { background-color: #ff8a65; }
     .sub:hover { background-color: #ff7043; }
+    input[type="number"] {
+      width: 60px;
+      padding: 3px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <h1>📋 경찰 벌금 기록</h1>
   <div id="leaderboard"></div>
-
   <div id="buttons"></div>
 
   <script>
@@ -85,21 +91,32 @@
         div.className = "person";
         div.innerHTML = `
           <span>${name}</span>
-          <button class="add">+1 서창</button>
-          <button class="sub">-1 서창</button>
+          <input type="number" value="0" min="0" />
+          <button class="add">추가</button>
+          <button class="sub">차감</button>
         `;
+        const input = div.querySelector("input");
         const addBtn = div.querySelector(".add");
         const subBtn = div.querySelector(".sub");
 
         addBtn.onclick = () => {
-          fines[name] = (fines[name] || 0) + 1;
-          saveFines(fines);
-          updateLeaderboard();
+          const amount = parseInt(input.value);
+          if (!isNaN(amount) && amount > 0) {
+            fines[name] = (fines[name] || 0) + amount;
+            saveFines(fines);
+            updateLeaderboard();
+            input.value = 0;
+          }
         };
+
         subBtn.onclick = () => {
-          fines[name] = Math.max((fines[name] || 0) - 1, 0);
-          saveFines(fines);
-          updateLeaderboard();
+          const amount = parseInt(input.value);
+          if (!isNaN(amount) && amount > 0) {
+            fines[name] = Math.max((fines[name] || 0) - amount, 0);
+            saveFines(fines);
+            updateLeaderboard();
+            input.value = 0;
+          }
         };
 
         container.appendChild(div);

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>벌금 기록 앱</title>
+  <style>
+    body {
+      background-color: #e8f0fa;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #103f75;
+    }
+
+    #leaderboard {
+      margin: 20px auto;
+      max-width: 600px;
+      background-color: #ffffff;
+      border: 2px solid #103f75;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: left;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      max-width: 800px;
+      margin: 20px auto;
+    }
+
+    .person {
+      background-color: #ffffff;
+      border: 2px solid #103f75;
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .person:hover {
+      background-color: #d0e2ff;
+    }
+
+    .amount {
+      margin-top: 5px;
+      font-weight: bold;
+      color: #103f75;
+    }
+
+    #total {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #1a3d6d;
+      font-weight: bold;
+    }
+
+    .leaderboard-entry {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>👮 벌금 기록 앱</h1>
+
+  <div id="leaderboard">
+    <h2>📊 리더보드</h2>
+    <div id="leaderboardList"></div>
+  </div>
+
+  <div class="grid" id="buttonsGrid"></div>
+  <div id="total">총 벌금: 0서창</div>
+
+  <script>
+    const names = [
+      "구지민", "김민성", "김세은", "김아윤", "김지운",
+      "라셀", "박민재", "박선율", "박수현", "박은성", "안정우",
+      "양예진", "윤유성", "이서준", "이애민", "이윤아", "이화림",
+      "정재현", "정지유", "지은서", "진서윤", "차시율"
+    ];
+
+    const fines = {};
+    const grid = document.getElementById("buttonsGrid");
+    const totalDisplay = document.getElementById("total");
+    const leaderboardList = document.getElementById("leaderboardList");
+
+    function updateTotal() {
+      const total = Object.values(fines).reduce((sum, val) => sum + val, 0);
+      totalDisplay.textContent = `총 벌금: ${total}서창`;
+    }
+
+    function updateLeaderboard() {
+      leaderboardList.innerHTML = '';
+      const sorted = Object.entries(fines)
+        .sort((a, b) => b[1] - a[1]);
+
+      sorted.forEach(([name, amount], index) => {
+        const div = document.createElement("div");
+        div.className = "leaderboard-entry";
+        div.textContent = `${index + 1}. ${name} - ${amount}서창`;
+        leaderboardList.appendChild(div);
+      });
+    }
+
+    names.forEach(name => {
+      fines[name] = 0;
+
+      const div = document.createElement("div");
+      div.className = "person";
+      div.innerHTML = `<div>${name}</div><div class="amount" id="amount-${name}">0서창</div>`;
+      div.onclick = () => {
+        const action = prompt(`${name}에게 추가하거나 차감할 서창 수를 입력하세요 (예: +3 또는 -2)`);
+        const value = parseInt(action);
+        if (!isNaN(value)) {
+          fines[name] += value;
+          if (fines[name] < 0) fines[name] = 0;
+          document.getElementById(`amount-${name}`).textContent = `${fines[name]}서창`;
+          updateTotal();
+          updateLeaderboard();
+        }
+      };
+      grid.appendChild(div);
+    });
+
+    updateLeaderboard();
+  </script>
+</body>
+</html>
